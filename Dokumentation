@@ -1,0 +1,104 @@
+PortaFontium Downloader – Dokumentation
+1. Überblick
+Zweck:
+Der PortaFontium Downloader ermöglicht das Herunterladen von Büchern von der Webseite Porta Fontium. Das Programm bietet eine grafische Benutzeroberfläche (GUI) für das Hinzufügen, Löschen und Verwalten von Büchern sowie für das Starten und Stoppen von Downloads.
+Hauptmerkmale:
+•	Mehrsprachige GUI: Deutsch, Englisch, Tschechisch.
+•	Mehrfachauswahl in der Warteliste möglich.
+•	Fortschrittsanzeige pro Buch und für alle Downloads.
+•	Anpassbare Seitenauswahl pro Buch.
+•	Log-Fenster für Statusmeldungen.
+•	Direktzugriff auf die Porta Fontium Hauptseite.
+•	Farbig gestaltete, intuitive Buttons.
+Technologien:
+•	Python 3
+•	tkinter für GUI
+•	requests für HTTP-Anfragen
+•	BeautifulSoup für HTML Parsing
+________________________________________
+2. Struktur des Programms
+2.1 Globale Konstanten
+•	DEFAULT_HEADERS: HTTP Header für die Requests, um die Webseite korrekt anzusprechen.
+•	FONT_DEFAULT: Standardfont für die GUI.
+•	LANG: Dictionary für mehrsprachige Texte (Deutsch, Englisch, Tschechisch).
+Beispiel für Spracheinträge:
+"de": {
+    "title": "📚 PortaFontium Downloader",
+    "add_book": "➕ Buch hinzufügen",
+    "delete_book": "🗑️ Buch löschen",
+    ...
+}
+________________________________________
+2.2 Hilfsfunktionen
+1.	fetch_html(url, session)
+Lädt die HTML-Seite einer Buch-URL herunter und gibt den HTML-Code zurück.
+2.	find_iip_links(html, base_url)
+Extrahiert alle Bildlinks (Seitenbilder) aus der HTML-Seite des Buches.
+3.	build_download_url(iip_url)
+Baut eine direkt nutzbare JPEG-Download-URL aus einem IIP-Image-Server-Link.
+4.	download_image(url, path, session, retries=3)
+Lädt ein Bild herunter und speichert es am angegebenen Pfad. Bei Fehlern wird der Download bis zu 3-mal wiederholt.
+________________________________________
+2.3 Klasse Downloader
+Verantwortung:
+Download-Logik für alle Bücher in der Warteliste.
+Attribute:
+•	books: Liste der Bücher (Dictionary mit URL, Zielordner, Seitenangaben).
+•	log: Callback für Logmeldungen.
+•	progress_update: Callback für Fortschrittsanzeigen.
+•	stop_flag: Lambda für Abbruchbedingung.
+•	session: Requests-Session mit Headers.
+Methoden:
+•	parse_pages(pages_str, total): Wandelt eine Seitenangabe (z.B. "1,5,8-10") in eine Liste von Zahlen um.
+•	run(): Führt den Download für alle Bücher aus, aktualisiert Logs und Fortschritt.
+________________________________________
+2.4 Klasse DownloaderGUI
+Verantwortung:
+GUI-Logik, Anzeige, Benutzerinteraktion.
+Wichtige GUI-Elemente:
+•	Home Button: Öffnet die Porta Fontium Hauptseite.
+•	Eingabefelder: Buch-URL, Zielordner, Seiten.
+•	Buttons rechts vom Zielordner: Buch hinzufügen, Buch löschen, Seiten ändern.
+•	Download & Stop Buttons: Starten oder Stoppen des Downloadprozesses.
+•	Sprache & Log: Auswahl der Sprache und Öffnen/Schließen des Log-Fensters.
+•	Warteliste: Listbox für die Bücher, unterstützt Mehrfachauswahl.
+•	Fortschrittsbalken: Zeigt prozentualen Fortschritt aller Downloads.
+•	Log-Fenster: Zeigt Statusmeldungen, kann geöffnet oder geschlossen bleiben.
+Wichtige Methoden:
+•	open_home(): Öffnet die Hauptseite im Webbrowser.
+•	choose_dir(): Öffnet einen Dialog zum Auswählen des Zielordners.
+•	toggle_log(): Öffnet oder schließt das Log-Fenster.
+•	log(msg): Schreibt eine Meldung in das Log-Fenster.
+•	add_book(): Fügt ein Buch zur Warteliste hinzu.
+•	delete_book(): Löscht alle ausgewählten Bücher aus der Warteliste.
+•	change_pages(): Ändert die Seitenangaben eines ausgewählten Buches.
+•	start_books(): Startet den Downloadprozess (setzt Fortschrittsbalken auf 0).
+•	stop_download(): Stoppt laufende Downloads.
+•	update_progress(idx, value): Aktualisiert Fortschrittsbalken und Buchstatus.
+•	run_books_thread(): Führt den Downloader in einem separaten Thread aus.
+•	change_language(): Aktualisiert alle Labels und Buttons entsprechend der ausgewählten Sprache.
+________________________________________
+2.5 Besonderheiten
+•	Mehrfachauswahl in Listbox: Benutzer kann mehrere Bücher auswählen, um sie gleichzeitig zu löschen.
+•	Farbliche Buttons: Erhöht die Übersichtlichkeit und Benutzerfreundlichkeit.
+•	Log-Fenster: Immer manuell steuerbar, unabhängig von Logmeldungen.
+•	Prozentualer Fortschrittsbalken: Zeigt Gesamtfortschritt basierend auf abgeschlossenen Downloads an.
+________________________________________
+3. Nutzungshinweise
+1.	Bücher hinzufügen:
+o	Buch-URL, Zielordner und ggf. Seiten angeben.
+o	Button „Buch hinzufügen“ klicken.
+2.	Bücher löschen:
+o	Bücher in der Warteliste auswählen (Mehrfachauswahl möglich).
+o	Button „Buch löschen“ klicken oder Entf drücken.
+3.	Seiten ändern:
+o	Buch auswählen und Button „Seiten ändern“ klicken.
+4.	Download starten:
+o	Button „Herunterladen“ klicken.
+o	Fortschrittsbalken zeigt den Gesamtfortschritt.
+5.	Download stoppen:
+o	Button „Stopp“ klicken.
+6.	Log-Fenster:
+o	Über den Button „Log öffnen/Log schließen“ sichtbar machen.
+7.	Sprache ändern:
+o	Auswahlmenü oben rechts verwenden, alle Texte passen sich automatisch an.
