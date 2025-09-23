@@ -1,7 +1,7 @@
 # PortaFontiumDownloader
 File-Downloader for Porta Fontium 🇩🇪 🇬🇧 🇨🇿
 
-![alt text](https://github.com/Umzagie/PortaFontiumDownloader/blob/main/pfdownloader.png?raw=true)
+![alt text](https://github.com/Testatost/Porta-Fontium-Downloader/blob/main/pfdownloader.png?raw=true)
 
 # 🇩🇪 Deutsch
 
