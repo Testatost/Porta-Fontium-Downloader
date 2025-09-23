@@ -97,3 +97,7 @@ File-Downloader for Porta Fontium 🇩🇪 🇬🇧 🇨🇿
 •	 Tlačítka „Stáhnout“, „Zastavit“, „Reset“.
 •	 Dvojklik otevře URL knihy v prohlížeči.
 •	 Celkový průběh je v progress baru.
+
+------------------------------------------------------------------------------------------------------------------------
+
+Disclaimer: This code was made with ChatGPT 5.
