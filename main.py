@@ -170,6 +170,16 @@ class Downloader:
                     pass
         return sorted(set(pages_to_download))
 
+    def extract_book_id(self, url):
+        """Extrahiert die ID aus der URL (z.B. ?id=12345 oder &id=678)."""
+        parsed = urlparse(url)
+        qs = parse_qs(parsed.query)
+        book_id = qs.get("id", [None])[0]
+        if not book_id:
+            # Fallback: Letzter URL-Teil falls keine ID-Query
+            book_id = os.path.basename(parsed.path).strip("/") or "unknown"
+        return book_id
+
     def run(self):
         total_books = len(self.books)
         books_done = 0
@@ -196,13 +206,18 @@ class Downloader:
             os.makedirs(book["outdir"], exist_ok=True)
             pages_to_download = self.parse_pages(book.get("pages",""), len(links))
             errors = 0
+
+            # NEU: Buch-ID aus der URL extrahieren
+            book_id = self.extract_book_id(book["url"])
+
             for i in pages_to_download:
                 if self.stop_flag():
                     self.log("[*] Abgebrochen.")
                     errors += 1
                     break
                 link = links[i-1]
-                fname = f"page_{i:04d}.jpg"
+                # >>> Angepasster Dateiname
+                fname = f"{book_id}_page_{i:04d}.jpg"
                 outpath = os.path.join(book["outdir"], fname)
                 dl_url = build_download_url(link)
                 self.log(f"Lade {fname}")
@@ -235,6 +250,8 @@ class DownloaderGUI:
         master.title(LANG[self.lang]["title"])
         master.geometry("1130x850")
 
+
+
         # Top Home + Sprache + Log Toggle
         top_frame = tk.Frame(master)
         top_frame.pack(fill="x", pady=5)
@@ -243,7 +260,6 @@ class DownloaderGUI:
         self.btn_home.pack(side="left", padx=5)
 
         self.lang_var = tk.StringVar(value=self.lang)
-        # Radiobuttons bleiben, Label "Sprache" entfernt
         for l in ["de","en","cs"]:
             tk.Radiobutton(top_frame, text=l.upper(), variable=self.lang_var, value=l, command=self.change_language).pack(side="left")
 
@@ -344,7 +360,8 @@ class DownloaderGUI:
         self.log_text = tk.Text(self.log_frame, height=12, font=("Consolas", 10))
         self.log_text.pack(fill="both", expand=True)
 
-    # --- Methoden ---
+        # --- Methoden ---
+
     def open_home(self):
         webbrowser.open("https://www.portafontium.eu/searching")
 
@@ -373,14 +390,17 @@ class DownloaderGUI:
 
     def log(self, msg):
         translations = {
-            "Abgebrochen": {"de":"Abgebrochen","en":"Cancelled","cs":"Zrušeno"},
-            "Keine Seiten gefunden für": {"de":"Keine Seiten gefunden für","en":"No pages found for","cs":"Žádné stránky nalezeny pro"},
-            "Buch hinzugefügt": {"de":"Buch hinzugefügt","en":"Book added","cs":"Kniha přidána"},
-            "Buch gelöscht": {"de":"Buch gelöscht","en":"Book deleted","cs":"Kniha smazána"},
-            "Seiten geändert": {"de":"Seiten geändert","en":"Pages changed","cs":"Stránky změněny"},
-            "Alle Bücher fertig": {"de":"Alle Bücher fertig","en":"All books finished","cs":"Všechny knihy dokončeny"},
-            "Warteliste gespeichert": {"de":"Warteliste gespeichert","en":"Waiting List saved","cs":"Seznam uložen"},
-            "Warteliste geladen": {"de":"Warteliste geladen","en":"Waiting List loaded","cs":"Seznam načten"}
+            "Abgebrochen": {"de": "Abgebrochen", "en": "Cancelled", "cs": "Zrušeno"},
+            "Keine Seiten gefunden für": {"de": "Keine Seiten gefunden für", "en": "No pages found for",
+                                          "cs": "Žádné stránky nalezeny pro"},
+            "Buch hinzugefügt": {"de": "Buch hinzugefügt", "en": "Book added", "cs": "Kniha přidána"},
+            "Buch gelöscht": {"de": "Buch gelöscht", "en": "Book deleted", "cs": "Kniha smazána"},
+            "Seiten geändert": {"de": "Seiten geändert", "en": "Pages changed", "cs": "Stránky změněny"},
+            "Alle Bücher fertig": {"de": "Alle Bücher fertig", "en": "All books finished",
+                                   "cs": "Všechny knihy dokončeny"},
+            "Warteliste gespeichert": {"de": "Warteliste gespeichert", "en": "Waiting List saved",
+                                       "cs": "Seznam uložen"},
+            "Warteliste geladen": {"de": "Warteliste geladen", "en": "Waiting List loaded", "cs": "Seznam načten"}
         }
 
         for key, val in translations.items():
@@ -393,7 +413,7 @@ class DownloaderGUI:
         self.log_text.see("end")
 
         if self.save_log_var.get() and self.books:
-            outdir = self.books[0].get("outdir","")
+            outdir = self.books[0].get("outdir", "")
             if outdir and os.path.isdir(outdir):
                 logfile = os.path.join(outdir, "download_log.txt")
                 with open(logfile, "a", encoding="utf-8") as f:
@@ -432,7 +452,8 @@ class DownloaderGUI:
         item = sel[0]
         idx = self.tree.index(item)
         current_pages = self.books[idx]["pages"]
-        pages = simpledialog.askstring(LANG[self.lang]["change_pages"], LANG[self.lang]["pages_hint"], initialvalue=current_pages)
+        pages = simpledialog.askstring(LANG[self.lang]["change_pages"], LANG[self.lang]["pages_hint"],
+                                       initialvalue=current_pages)
         if pages is not None:
             self.books[idx]["pages"] = pages
             values = list(self.tree.item(item, "values"))
@@ -449,7 +470,6 @@ class DownloaderGUI:
     def save_list(self):
         if not self.books:
             return
-        # Dateiname nach Sprache + Datum
         prefix = {
             "de": "Warteliste",
             "en": "Waiting List",
@@ -457,21 +477,22 @@ class DownloaderGUI:
         }[self.lang]
         date_str = datetime.now().strftime("%Y-%m-%d")
         default_name = f"{prefix}+{date_str}.json"
-        file = filedialog.asksaveasfilename(defaultextension=".json", initialfile=default_name, filetypes=[("JSON","*.json")])
+        file = filedialog.asksaveasfilename(defaultextension=".json", initialfile=default_name,
+                                            filetypes=[("JSON", "*.json")])
         if file:
             with open(file, "w", encoding="utf-8") as f:
                 json.dump(self.books, f, indent=2, ensure_ascii=False)
             self.log(f"[💾] Warteliste gespeichert: {file}")
 
     def load_list(self):
-        file = filedialog.askopenfilename(filetypes=[("JSON","*.json")])
+        file = filedialog.askopenfilename(filetypes=[("JSON", "*.json")])
         if file:
             with open(file, "r", encoding="utf-8") as f:
                 self.books = json.load(f)
             for item in self.tree.get_children():
                 self.tree.delete(item)
             for b in self.books:
-                self.tree.insert("", "end", values=(b["url"], b.get("pages",""), "⏳"))
+                self.tree.insert("", "end", values=(b["url"], b.get("pages", ""), "⏳"))
             self.log(f"[📂] Warteliste geladen: {file}")
 
     def start_books(self):
@@ -497,7 +518,8 @@ class DownloaderGUI:
             self.tree.item(item, values=values)
 
     def run_books_thread(self):
-        downloader = Downloader(self.books, log_callback=self.log, progress_callback=self.update_progress, stop_flag=lambda: self.stop_flag)
+        downloader = Downloader(self.books, log_callback=self.log, progress_callback=self.update_progress,
+                                stop_flag=lambda: self.stop_flag)
         downloader.run()
 
     def change_language(self, _=None):
@@ -510,7 +532,8 @@ class DownloaderGUI:
         self.btn_reset.config(text=LANG[self.lang]["reset"])
         self.btn_choose.config(text=LANG[self.lang]["choose_dir"])
         self.btn_home.config(text=LANG[self.lang]["home"])
-        self.btn_log_toggle.config(text=LANG[self.lang]["log_open"] if not self.log_open else LANG[self.lang]["log_close"])
+        self.btn_log_toggle.config(
+            text=LANG[self.lang]["log_open"] if not self.log_open else LANG[self.lang]["log_close"])
         self.btn_save_list.config(text=LANG[self.lang]["save_list"])
         self.btn_load_list.config(text=LANG[self.lang]["load_list"])
         self.chk_save_log.config(text=LANG[self.lang]["save_log"])

@@ -101,3 +101,6 @@ File-Downloader for Porta Fontium 🇩🇪 🇬🇧 🇨🇿
 ------------------------------------------------------------------------------------------------------------------------
 
 Disclaimer: This code was made with ChatGPT 5.
+
+Update 1.1
+-individuelle Dateinnamen (heruntergeladene Dateien haben nun einen individuellen Namen von dem Verzeichnis aus dem sie herstammen)
