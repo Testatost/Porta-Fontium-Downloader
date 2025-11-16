@@ -1,5 +1,5 @@
-# PortaFontiumDownloader
-File-Downloader for Porta Fontium 🇩🇪 🇬🇧 🇨🇿
+# Porta fontium Downloader
+File-Downloader for Porta fontium 🇩🇪 🇬🇧 🇨🇿
 
 ![alt text](https://github.com/Testatost/Porta-Fontium-Downloader/blob/main/Porta%20fontium%20Downloader.png?raw=true)
 
